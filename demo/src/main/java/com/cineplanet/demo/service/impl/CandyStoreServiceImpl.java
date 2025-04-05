@@ -27,7 +27,7 @@ public class CandyStoreServiceImpl implements CandyStoreService {
 
     @Override
     public List<CandyStoreSummaryDto> getAllCandyStores() {
-        String sql = "CALL getAllCandyStores()";
+        String sql = "CALL get_all_candy_stores()";
         logger.info("Ejecutando procedimiento: {}", sql);
 
         try {

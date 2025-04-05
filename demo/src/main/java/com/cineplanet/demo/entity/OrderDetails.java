@@ -11,10 +11,6 @@ public class OrderDetails extends BasicEntity {
     @JoinColumn(name = "order_id", referencedColumnName = "id", nullable = false)
     private Orders orders;
 
-    @ManyToOne
-    @JoinColumn(name = "candy_store_id", referencedColumnName = "id", nullable = false)
-    private CandyStore candyStore;
-
     @Column(name = "quantity", nullable = false)
     private int quantity;
 
