@@ -42,7 +42,6 @@ public class CandyStoreServiceImpl implements CandyStoreService {
 
     @Override
     public CandyStore getCandyStoreById(Long id) {
-        // Obtener una tienda de caramelos por su ID (con JPA, o si usas procedimiento almacenado, implementa uno para esto)
         return null;
     }
 }
