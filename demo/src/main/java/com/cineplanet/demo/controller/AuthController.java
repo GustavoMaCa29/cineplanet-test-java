@@ -1,6 +1,5 @@
 package com.cineplanet.demo.controller;
 
-import com.cineplanet.demo.entity.User;
 import com.cineplanet.demo.service.interfaces.AuthService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -20,8 +19,8 @@ public class AuthController {
         this.authService = authService;
     }
 
-    @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody User user) {
-        return ResponseEntity.ok(authService.login(user));
-    }
+//    @PostMapping("/login")
+//    public ResponseEntity<?> login(@RequestBody User user) {
+//        return ResponseEntity.ok(authService.login(user));
+//    }
 }

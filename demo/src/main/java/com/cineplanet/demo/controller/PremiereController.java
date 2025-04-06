@@ -1,7 +1,6 @@
 package com.cineplanet.demo.controller;
 
 import com.cineplanet.demo.dto.PremiereSummaryDto;
-import com.cineplanet.demo.entity.Premiere;
 import com.cineplanet.demo.service.interfaces.PremiereService;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
