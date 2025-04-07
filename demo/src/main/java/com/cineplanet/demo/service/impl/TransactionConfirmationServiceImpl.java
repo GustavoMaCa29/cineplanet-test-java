@@ -43,42 +43,57 @@ public class TransactionConfirmationServiceImpl implements TransactionConfirmati
 
     @Override
     public String processPayment(PaymentRequest request) {
-        String url = properties.getUrl();
-        String referenceCode = "PEDIDO_" + UUID.randomUUID();
-        String signature = generateSignature(properties.getApiKey(), properties.getMerchantId(), referenceCode, request.getAmount(), properties.getCurrency());
+        if (request.getAmount() == null || request.getAmount() <= 0) {
+            throw new IllegalArgumentException("El monto debe ser mayor a 0 para procesar el pago.");
+        }
 
+        String referenceCode = "PEDIDO_" + UUID.randomUUID();
+        String signature = generateSignature(
+                properties.getApiKey(), properties.getMerchantId(), referenceCode,
+                request.getAmount(), properties.getCurrency()
+        );
+
+        Map<String, Object> requestBody = new HashMap<>();
+        requestBody.put("language", "es");
+        requestBody.put("command", "SUBMIT_TRANSACTION");
+        requestBody.put("merchant", buildMerchant());
+        requestBody.put("transaction", buildTransaction(request, referenceCode, signature));
+        requestBody.put("test", true);
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        HttpEntity<Object> entity = new HttpEntity<>(requestBody, headers);
+
+        ResponseEntity<String> response = restTemplate.postForEntity(properties.getUrl(), entity, String.class);
+        return response.getBody();
+    }
+
+    private Map<String, Object> buildMerchant() {
         Map<String, Object> merchant = new HashMap<>();
         merchant.put("apiKey", properties.getApiKey());
         merchant.put("apiLogin", properties.getApiLogin());
+        return merchant;
+    }
 
-        Map<String, Object> buyer = new HashMap<>();
-        buyer.put("emailAddress", request.getEmail());
-
-        Map<String, Object> txValue = new HashMap<>();
-        txValue.put("value", request.getAmount());
-        txValue.put("currency", properties.getCurrency());
-
-        Map<String, Object> additionalValues = new HashMap<>();
-        additionalValues.put("TX_VALUE", txValue);
-
+    private Map<String, Object> buildTransaction(PaymentRequest req, String refCode, String signature) {
         Map<String, Object> order = new HashMap<>();
         order.put("accountId", properties.getAccountId());
-        order.put("referenceCode", referenceCode);
+        order.put("referenceCode", refCode);
         order.put("description", properties.getDescription());
         order.put("language", "es");
         order.put("signature", signature);
-        order.put("buyer", buyer);
-        order.put("additionalValues", additionalValues);
+        order.put("buyer", buildBuyer(req));
+        order.put("additionalValues", buildAdditionalValues(req));
 
         Map<String, Object> creditCard = new HashMap<>();
-        creditCard.put("number", request.getCardNumber());
-        creditCard.put("securityCode", request.getCvv());
-        creditCard.put("expirationDate", request.getExpiration());
-        creditCard.put("name", request.getName());
+        creditCard.put("number", req.getCardNumber());
+        creditCard.put("securityCode", req.getCvv());
+        creditCard.put("expirationDate", req.getExpiration());
+        creditCard.put("name", req.getName());
 
         Map<String, Object> payer = new HashMap<>();
-        payer.put("emailAddress", request.getEmail());
-        payer.put("fullName", request.getName());
+        payer.put("emailAddress", req.getEmail());
+        payer.put("fullName", req.getName());
 
         Map<String, Object> transaction = new HashMap<>();
         transaction.put("order", order);
@@ -88,19 +103,23 @@ public class TransactionConfirmationServiceImpl implements TransactionConfirmati
         transaction.put("paymentCountry", "PE");
         transaction.put("payer", payer);
 
-        Map<String, Object> requestBody = new HashMap<>();
-        requestBody.put("language", "es");
-        requestBody.put("command", "SUBMIT_TRANSACTION");
-        requestBody.put("merchant", merchant);
-        requestBody.put("transaction", transaction);
-        requestBody.put("test", true);
+        return transaction;
+    }
 
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
-        HttpEntity<Object> entity = new HttpEntity<>(requestBody, headers);
+    private Map<String, Object> buildBuyer(PaymentRequest req) {
+        Map<String, Object> buyer = new HashMap<>();
+        buyer.put("emailAddress", req.getEmail());
+        return buyer;
+    }
 
-        ResponseEntity<String> response = restTemplate.postForEntity(url, entity, String.class);
-        return response.getBody();
+    private Map<String, Object> buildAdditionalValues(PaymentRequest req) {
+        Map<String, Object> txValue = new HashMap<>();
+        txValue.put("value", req.getAmount());
+        txValue.put("currency", properties.getCurrency());
+
+        Map<String, Object> additionalValues = new HashMap<>();
+        additionalValues.put("TX_VALUE", txValue);
+        return additionalValues;
     }
 
     private String generateSignature(String apiKey, String merchantId, String referenceCode, Double amount, String currency) {
