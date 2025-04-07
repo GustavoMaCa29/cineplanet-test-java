@@ -36,7 +36,7 @@ public class CandyStoreServiceImpl implements CandyStoreService {
             return result;
         } catch (Exception e) {
             logger.error("Error al ejecutar procedimiento almacenado", e);
-            throw e;
+            throw new RuntimeException("No se pudieron obtener los productos");
         }
     }
 
